@@ -62,36 +62,52 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 ? Center(child: Text(_error, style: const TextStyle(color: Colors.red)))
                 : _favorites.isEmpty
                     ? const Center(child: Text('Aucun livre dans les favoris.'))
-                    : ListView.builder(
+                    : GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.7,
+                        ),
                         itemCount: _favorites.length,
                         itemBuilder: (context, index) {
                           final book = _favorites[index];
                           return Card(
                             elevation: 4,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: ListTile(
-                              leading: book.imageUrl.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        book.imageUrl,
-                                        width: 50,
-                                        height: 70,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.book, size: 50),
-                                      ),
-                                    )
-                                  : const Icon(Icons.book, size: 50),
-                              title: Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text(book.author),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _removeFavorite(book.id),
-                                tooltip: 'Supprimer des favoris',
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                    child: book.imageUrl.isNotEmpty
+                                        ? Image.network(
+                                            book.imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.book_outlined, size: 50),
+                                          )
+                                        : const Icon(Icons.book_outlined, size: 50),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    book.title,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _removeFavorite(book.id),
+                                  tooltip: 'Supprimer des favoris',
+                                ),
+                              ],
                             ),
                           );
                         },
