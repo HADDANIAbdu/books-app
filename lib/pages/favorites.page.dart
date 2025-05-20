@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../services/db_service.dart';
+import 'detail.page.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -47,6 +48,15 @@ class _FavoritesPageState extends State<FavoritesPage> {
     _loadFavorites();
   }
 
+  void _navigateToDetail(Book book) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailPage(book: book),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,42 +82,45 @@ class _FavoritesPageState extends State<FavoritesPage> {
                         itemCount: _favorites.length,
                         itemBuilder: (context, index) {
                           final book = _favorites[index];
-                          return Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                    child: book.imageUrl.isNotEmpty
-                                        ? Image.network(
-                                            book.imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.book_outlined, size: 50),
-                                          )
-                                        : const Icon(Icons.book_outlined, size: 50),
+                          return InkWell(
+                            onTap: () => _navigateToDetail(book),
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                      child: book.imageUrl.isNotEmpty
+                                          ? Image.network(
+                                              book.imageUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.book_outlined, size: 50),
+                                            )
+                                          : const Icon(Icons.book_outlined, size: 50),
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    book.title,
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      book.title,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _removeFavorite(book.id),
-                                  tooltip: 'Supprimer des favoris',
-                                ),
-                              ],
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _removeFavorite(book.id),
+                                    tooltip: 'Supprimer des favoris',
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
