@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/book.dart';
 import '../services/api_service.dart';
+import '../services/db_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,21 +12,42 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ApiService _apiService = ApiService();
+  final DbService _dbService = DbService();
   final TextEditingController _searchController = TextEditingController();
   List<Book> _books = [];
+  Set<String> _favoriteBookIds = {};
   bool _isLoading = false;
   String _error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    try {
+      final favoriteBooks = await _dbService.getFavorites();
+      setState(() {
+        _favoriteBookIds = favoriteBooks.map((book) => book.id).toSet();
+      });
+    } catch (e) {
+      print('Error loading favorites: $e');
+    }
+  }
 
   void _searchBooks() async {
     setState(() {
       _isLoading = true;
       _error = '';
+      _books = [];
     });
     try {
       final books = await _apiService.searchBooks(_searchController.text.trim());
       setState(() {
         _books = books;
       });
+      _loadFavorites();
     } catch (e) {
       setState(() {
         _error = 'Erreur lors de la recherche.';
@@ -33,6 +55,20 @@ class _HomePageState extends State<HomePage> {
     } finally {
       setState(() {
         _isLoading = false;
+      });
+    }
+  }
+
+  void _toggleFavorite(Book book) async {
+    if (_favoriteBookIds.contains(book.id)) {
+      await _dbService.removeFavorite(book.id);
+      setState(() {
+        _favoriteBookIds.remove(book.id);
+      });
+    } else {
+      await _dbService.addFavorite(book);
+      setState(() {
+        _favoriteBookIds.add(book.id);
       });
     }
   }
@@ -97,6 +133,7 @@ class _HomePageState extends State<HomePage> {
                         itemCount: _books.length,
                         itemBuilder: (context, index) {
                           final book = _books[index];
+                          final isFavorite = _favoriteBookIds.contains(book.id);
                           return Card(
                             elevation: 4,
                             margin: const EdgeInsets.symmetric(vertical: 8),
@@ -118,6 +155,14 @@ class _HomePageState extends State<HomePage> {
                                   : const Icon(Icons.book, size: 50),
                               title: Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Text(book.author),
+                              trailing: IconButton(
+                                icon: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: isFavorite ? Colors.red : null,
+                                ),
+                                onPressed: () => _toggleFavorite(book),
+                                tooltip: isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
+                              ),
                             ),
                           );
                         },
